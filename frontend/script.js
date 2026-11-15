@@ -38,26 +38,7 @@ async function loadDashboard() {
     document.getElementById("totalSubjects").textContent =
       subjects.length;
 
-    table.innerHTML = "";
-
-    students.forEach((student) => {
-      const row = document.createElement("tr");
-
-      [
-        student.student_id,
-        student.name,
-        student.email,
-        student.department,
-        student.semester,
-        student.cgpa
-      ].forEach((value) => {
-        const cell = document.createElement("td");
-        cell.textContent = value ?? "-";
-        row.appendChild(cell);
-      });
-
-      table.appendChild(row);
-    });
+   renderStudents(students);
 
     status.textContent = "Student data loaded successfully.";
   } catch (error) {
@@ -153,6 +134,26 @@ function renderStudents(students) {
       row.appendChild(cell);
     });
 
+    const actionCell = document.createElement("td");
+
+    // Edit Button
+    const editButton = document.createElement("button");
+    editButton.textContent = "Edit";
+    editButton.className = "edit-btn";
+    editButton.addEventListener("click", () => {
+      editStudent(student);
+    });
+
+    // Delete Button
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.className = "delete-btn";
+    deleteButton.addEventListener("click", () => {
+      deleteStudent(student.student_id, student.name);
+    });
+
+    actionCell.append(editButton, deleteButton);
+    row.appendChild(actionCell);
     table.appendChild(row);
   });
 }
@@ -324,3 +325,141 @@ async function loadPerformanceInsights() {
 }
 
 loadPerformanceInsights();
+
+// ADD STUDENT FORM
+document.getElementById("studentForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const student = {
+    name: document.getElementById("studentName").value.trim(),
+    email: document.getElementById("studentEmail").value.trim(),
+    department: document.getElementById("studentDepartment").value.trim(),
+    semester: Number(document.getElementById("studentSemester").value),
+    cgpa: Number(document.getElementById("studentCgpa").value)
+  };
+
+  try {
+    const response = await fetch("http://localhost:5000/api/students", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(student)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || "Unable to add student");
+    }
+
+    alert(result.message);
+    document.getElementById("studentForm").reset();
+
+    loadDashboard();
+
+  } catch (error) {
+    alert("Error: " + error.message);
+    console.error(error);
+  }
+});
+
+// EDIT STUDENT
+async function editStudent(student) {
+  const name = prompt("Enter student name:", student.name);
+  if (name === null) return;
+
+  const email = prompt("Enter student email:", student.email);
+  if (email === null) return;
+
+  const department = prompt("Enter department:", student.department);
+  if (department === null) return;
+
+  const semester = prompt("Enter semester:", student.semester);
+  if (semester === null) return;
+
+  const cgpa = prompt("Enter CGPA:", student.cgpa);
+  if (cgpa === null) return;
+
+  const updatedStudent = {
+    name: name.trim(),
+    email: email.trim(),
+    department: department.trim(),
+    semester: Number(semester),
+    cgpa: Number(cgpa)
+  };
+
+  if (
+    !updatedStudent.name ||
+    !updatedStudent.email ||
+    !updatedStudent.department ||
+    !Number.isInteger(updatedStudent.semester) ||
+    updatedStudent.semester < 1 ||
+    !Number.isFinite(updatedStudent.cgpa) ||
+    updatedStudent.cgpa < 0 ||
+    updatedStudent.cgpa > 10
+  ) {
+    alert("Please enter valid student details.");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/students/${student.student_id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedStudent)
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || result.error || "Update failed");
+    }
+
+    alert(result.message);
+
+    await loadDashboard();
+    await loadExtraFeatures();
+
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+}
+
+// DELETE STUDENT
+async function deleteStudent(id, name) {
+  const confirmDelete = confirm(
+    `Are you sure you want to delete ${name}?`
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/students/${id}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || result.error);
+    }
+
+    alert(result.message);
+
+    // Refresh all dashboard data
+    location.reload();
+
+  } catch (error) {
+    alert("Error: " + error.message);
+    console.error(error);
+  }
+}

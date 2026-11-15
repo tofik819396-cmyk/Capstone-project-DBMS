@@ -167,3 +167,57 @@ tr:hover {
     gap: 8px;
   }
 }
+
+.student-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.student-form input {
+  flex: 1 1 180px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.student-form button {
+  padding: 12px 22px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.student-form button:hover {
+  background: #1d4ed8;
+}
+
+.edit-btn {
+  background: #2563eb;
+  color: white;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #1d4ed8;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}

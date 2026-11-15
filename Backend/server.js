@@ -89,6 +89,144 @@ app.get("/api/attendance", (req, res) => {
   });
 });
 
+// ADD NEW STUDENT API
+app.post("/api/students", (req, res) => {
+  const { name, email, department, semester, cgpa } = req.body;
+
+  if (!name || !email || !department || !semester || cgpa === undefined) {
+    return res.status(400).json({
+      message: "Please fill all student details"
+    });
+  }
+
+  const sql = `
+    INSERT INTO students (name, email, department, semester, cgpa)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    sql,
+    [name, email, department, semester, cgpa],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({
+          message: "Unable to add student",
+          error: err.message
+        });
+      }
+
+      res.status(201).json({
+        message: "Student added successfully!",
+        studentId: result.insertId
+      });
+    }
+  );
+});
+
+// EDIT STUDENT API
+app.put("/api/students/:id", (req, res) => {
+  const { name, email, department, semester, cgpa } = req.body;
+  const studentId = req.params.id;
+
+  if (!name || !email || !department || !semester ||
+      cgpa === undefined || Number(cgpa) < 0 || Number(cgpa) > 10) {
+    return res.status(400).json({
+      message: "Please enter valid student details"
+    });
+  }
+
+  const sql = `
+    UPDATE students
+    SET name = ?, email = ?, department = ?, semester = ?, cgpa = ?
+    WHERE student_id = ?
+  `;
+
+  db.query(
+    sql,
+    [name, email, department, semester, cgpa, studentId],
+    (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({
+          message: "Student not found"
+        });
+      }
+
+      res.json({ message: "Student updated successfully!" });
+    }
+  );
+});
+
+// DELETE STUDENT API
+app.delete("/api/students/:id", (req, res) => {
+  const studentId = req.params.id;
+
+  db.beginTransaction((err) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    db.query(
+      "DELETE FROM attendance WHERE student_id = ?",
+      [studentId],
+      (err) => {
+        if (err) {
+          return db.rollback(() =>
+            res.status(500).json({ error: err.message })
+          );
+        }
+
+        db.query(
+          "DELETE FROM marks WHERE student_id = ?",
+          [studentId],
+          (err) => {
+            if (err) {
+              return db.rollback(() =>
+                res.status(500).json({ error: err.message })
+              );
+            }
+
+            db.query(
+              "DELETE FROM students WHERE student_id = ?",
+              [studentId],
+              (err, result) => {
+                if (err) {
+                  return db.rollback(() =>
+                    res.status(500).json({ error: err.message })
+                  );
+                }
+
+                if (result.affectedRows === 0) {
+                  return db.rollback(() =>
+                    res.status(404).json({
+                      message: "Student not found"
+                    })
+                  );
+                }
+
+                db.commit((err) => {
+                  if (err) {
+                    return db.rollback(() =>
+                      res.status(500).json({ error: err.message })
+                    );
+                  }
+
+                  res.json({
+                    message: "Student deleted successfully!"
+                  });
+                });
+              }
+            );
+          }
+        );
+      }
+    );
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);

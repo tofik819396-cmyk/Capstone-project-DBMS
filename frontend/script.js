@@ -1,11 +1,11 @@
-
+const API_URL = "https://capstone-project-dbms-1.onrender.com";
 async function loadDashboard() {
   const status = document.getElementById("status");
   const table = document.getElementById("studentTable");
 
   try {
     const response = await fetch(
-      "http://localhost:5000/api/students"
+      "http://${API_URL}/api/students"
     );
 
     if (!response.ok) {
@@ -26,7 +26,7 @@ async function loadDashboard() {
       average.toFixed(2);
 
     const subjectResponse = await fetch(
-      "http://localhost:5000/api/subjects"
+      "http://${API_URL}/api/subjects"
     );
 
     if (!subjectResponse.ok) {
@@ -52,8 +52,8 @@ loadDashboard();
 async function loadAnalytics() {
   try {
     const [marksResponse, attendanceResponse] = await Promise.all([
-      fetch("http://localhost:5000/api/marks"),
-      fetch("http://localhost:5000/api/attendance")
+      fetch("http://${API_URL}/api/marks"),
+      fetch("http://${API_URL}/api/attendance")
     ]);
 
     if (!marksResponse.ok || !attendanceResponse.ok) {
@@ -161,8 +161,8 @@ function renderStudents(students) {
 async function loadExtraFeatures() {
   try {
     const [studentsResponse, attendanceResponse] = await Promise.all([
-      fetch("http://localhost:5000/api/students"),
-      fetch("http://localhost:5000/api/attendance")
+      fetch(`${API_URL}/api/students`),
+      fetch(`${API_URL}/api/attendance`)
     ]);
 
     if (!studentsResponse.ok || !attendanceResponse.ok) {
@@ -214,8 +214,8 @@ loadExtraFeatures();
 async function loadPerformanceInsights() {
   try {
     const [marksResponse, attendanceResponse] = await Promise.all([
-      fetch("http://localhost:5000/api/marks"),
-      fetch("http://localhost:5000/api/attendance")
+      fetch("${API_URL}/api/marks"),
+      fetch("${API_URL}/api/attendance")
     ]);
 
     if (!marksResponse.ok || !attendanceResponse.ok) {
@@ -339,7 +339,7 @@ document.getElementById("studentForm").addEventListener("submit", async function
   };
 
   try {
-    const response = await fetch("http://localhost:5000/api/students", {
+    const response = await fetch("${API_URL}/api/students", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -405,7 +405,7 @@ async function editStudent(student) {
 
   try {
     const response = await fetch(
-      `http://localhost:5000/api/students/${student.student_id}`,
+      `${API_URL}/api/students/${student.student_id}`,
       {
         method: "PUT",
         headers: {
@@ -441,7 +441,7 @@ async function deleteStudent(id, name) {
 
   try {
     const response = await fetch(
-      `http://localhost:5000/api/students/${id}`,
+      `${API_URL}/api/students/${id}`,
       {
         method: "DELETE"
       }

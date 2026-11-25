@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Student Analytics Backend is Running!");
+  res.send("K.R. Mangalam University Backend is Running!");
 });
 
 app.get("/api/students", (req, res) => {
